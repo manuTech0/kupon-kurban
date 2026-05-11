@@ -1,0 +1,1 @@
+ALTER TABLE "recipients" ADD COLUMN "id_int" serial PRIMARY KEY NOT NULL;

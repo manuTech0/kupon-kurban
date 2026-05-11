@@ -1,0 +1,284 @@
+{
+	"id": "b71b0ae4-092b-4e78-9d81-d8448add5724",
+	"prevId": "f26a1152-4521-4722-84b0-57df017981ca",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.coupon_history": {
+			"name": "coupon_history",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"coupon_code_id": {
+					"name": "coupon_code_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"recipient_id": {
+					"name": "recipient_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"users_id": {
+					"name": "users_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"used": {
+					"name": "used",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				},
+				"status": {
+					"name": "status",
+					"type": "status",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "'USED'"
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"coupon_history_coupon_code_id_coupons_coupon_id_fk": {
+					"name": "coupon_history_coupon_code_id_coupons_coupon_id_fk",
+					"tableFrom": "coupon_history",
+					"tableTo": "coupons",
+					"columnsFrom": ["coupon_code_id"],
+					"columnsTo": ["coupon_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"coupon_history_recipient_id_recipients_id_fk": {
+					"name": "coupon_history_recipient_id_recipients_id_fk",
+					"tableFrom": "coupon_history",
+					"tableTo": "recipients",
+					"columnsFrom": ["recipient_id"],
+					"columnsTo": ["id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				},
+				"coupon_history_users_id_user_user_id_fk": {
+					"name": "coupon_history_users_id_user_user_id_fk",
+					"tableFrom": "coupon_history",
+					"tableTo": "user",
+					"columnsFrom": ["users_id"],
+					"columnsTo": ["user_id"],
+					"onDelete": "no action",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.coupons": {
+			"name": "coupons",
+			"schema": "",
+			"columns": {
+				"coupon_id": {
+					"name": "coupon_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"time": {
+					"name": "time",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"code": {
+					"name": "code",
+					"type": "serial",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"expired_at": {
+					"name": "expired_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"code_index": {
+					"name": "code_index",
+					"columns": [
+						{
+							"expression": "code",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"coupons_code_unique": {
+					"name": "coupons_code_unique",
+					"nullsNotDistinct": false,
+					"columns": ["code"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.recipients": {
+			"name": "recipients",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"address": {
+					"name": "address",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.setup": {
+			"name": "setup",
+			"schema": "",
+			"columns": {
+				"status": {
+					"name": "status",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.user": {
+			"name": "user",
+			"schema": "",
+			"columns": {
+				"user_id": {
+					"name": "user_id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"token": {
+					"name": "token",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"role": {
+					"name": "role",
+					"type": "userRole",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false,
+					"default": "'SCANNER'"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {
+		"public.status": {
+			"name": "status",
+			"schema": "public",
+			"values": ["USED", "DUPLICATE", "VALID"]
+		},
+		"public.userRole": {
+			"name": "userRole",
+			"schema": "public",
+			"values": ["ADMIN", "SCANNER"]
+		}
+	},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}
