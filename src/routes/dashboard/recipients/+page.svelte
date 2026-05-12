@@ -271,17 +271,17 @@ function exportEXCEL() {
 			/>
 		</div>
 		<div class="flex">
-			<button type="button" class="hover:scale-90 p-2 rounded-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={() => goto("recipients/download")}>
-				<CardSim /> <span>Download Coupon</span>
+			<button type="button" class="hover:scale-90 p-2 rounded-l-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={() => goto("recipients/download")}>
+				<CardSim /> <span>Coupon</span>
 			</button>
-			<button type="button" class="hover:scale-90 p-2 rounded-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={exportEXCEL}>
+			<button type="button" class="hover:scale-90 p-2 rounded-r-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={exportEXCEL}>
 				<Download /> <span>Excel</span>
 			</button>
 		</div>
 	</div>
 
-	<div class="bg-white rounded-lg shadow overflow-hidden">
-		<table class="w-full">
+	<div class="bg-white rounded-lg shadow">
+		<table class="w-full overflow-x-auto">
 			<thead class="bg-gray-50">
 				<tr>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>

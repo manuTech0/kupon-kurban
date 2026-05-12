@@ -22,7 +22,8 @@ export const load: PageServerLoad = async () => {
 					history: true
 				}
 			}
-		}
+		},
+		orderBy: (f, op) => op.desc(f.createdAt)
 	})
 	return {
 		recipients: result,
