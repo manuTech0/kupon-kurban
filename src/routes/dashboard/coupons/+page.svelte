@@ -1,11 +1,15 @@
 <script lang="ts">
 import { enhance } from "$app/forms";
 import { toast } from "svelte-sonner";
+import { toTitleCase } from "$lib/helper/titleCase";
+import Pagination from "$lib/Pagination.svelte";
 
 const { data } = $props();
 
 let coupons = $state(data.coupons);
 let search = $state("");
+let currentPage = $state(1);
+const itemsPerPage = 10;
 let showEditModal = $state(false);
 let showDeleteModal = $state(false);
 let selectedCoupon = $state<
@@ -25,6 +29,30 @@ function resetForm() {
 }
 
 let recipients = $state(data.recipient);
+
+const filteredCoupons = $derived(
+	coupons.filter(coupon => 
+		coupon.code.toString().includes(search) ||
+		recipients.find(r => r.id === coupon.recipientId)?.name.toLowerCase().includes(search.toLowerCase()) ||
+		recipients.find(r => r.id === coupon.recipientId)?.address.toLowerCase().includes(search.toLowerCase())
+	)
+);
+
+const totalPages = $derived(Math.ceil(filteredCoupons.length / itemsPerPage));
+const paginatedCoupons = $derived(
+	filteredCoupons.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage
+	)
+);
+
+function handlePageChange(page: number) {
+	currentPage = page;
+}
+
+$effect(() => {
+	currentPage = 1;
+});
 
 function formatDateForInput(date: Date | string | null | undefined): string {
 	if (!date) return "";
@@ -109,7 +137,7 @@ async function handleDelete() {
 						class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 					>
 						{#each recipients as recip}
-							<option value={recip.id}>{recip.name} / {recip.address}</option>
+							<option value={recip.id}>{toTitleCase(recip.name)} / {recip.address}</option>
 						{/each}
 					</select>
 				</div>
@@ -222,10 +250,7 @@ async function handleDelete() {
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
-				{#each coupons.filter(coupon => 
-					coupon.code?.toString().includes(search) ||
-					coupon.couponId?.toLowerCase().includes(search.toLowerCase())
-				) as coupon}
+				{#each paginatedCoupons as coupon}
 					<tr>
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 							<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full font-mono">
@@ -236,7 +261,7 @@ async function handleDelete() {
 							{coupon.time}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-							{recipients.find(d => d.id === coupon.recipientId)?.name} / {recipients.find(d => d.id === coupon.recipientId)?.address}
+							{toTitleCase(recipients.find(d => d.id === coupon.recipientId)?.name || '')} / {recipients.find(d => d.id === coupon.recipientId)?.address}
 						</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 							{new Date(coupon.createdAt).toLocaleString()}
@@ -272,10 +297,12 @@ async function handleDelete() {
 			</tbody>
 		</table>
 		
-		{#if coupons.length === 0}
+		{#if filteredCoupons.length === 0}
 			<div class="text-center py-8 text-gray-500">
 				No coupons found
 			</div>
+		{:else if totalPages > 1}
+			<Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
 		{/if}
 	</div>
 </div>

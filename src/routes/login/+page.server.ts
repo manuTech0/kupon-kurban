@@ -2,7 +2,7 @@ import { createSessionFromToken } from "$lib/auth";
 import { type Actions, redirect } from "@sveltejs/kit";
 
 export const actions: Actions = {
-	login: async ({ request, cookies }) => {
+	signin: async ({ request, cookies }) => {
 		const formData = await request.formData();
 		const token = formData.get("token");
 		if (!token) {

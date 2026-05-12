@@ -7,6 +7,7 @@ import Fuse from "fuse.js";
 import { TicketCheck, TicketMinus, ChevronRight } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 import { isWithin3Months } from "$lib/helper/within3Month";
+import { toTitleCase } from "$lib/helper/titleCase";
 import type { LogMeta } from "$lib/types/log";
     import { browser } from "$app/environment";
 
@@ -333,7 +334,7 @@ onDestroy(() => {
                 <h3 class="underline flex-1">#{item.coupon.code.toString().padStart(4, '0')}</h3>
                 <div class="flex flex-col flex-4">
                   <p>
-                    {item.name}
+                    {toTitleCase(item.name)}
                     {#if entry}
                       <span
                         class="uppercase text-xs font-bold ml-1
@@ -413,7 +414,7 @@ onDestroy(() => {
                 ></span>
 
                 <span class="flex-1 font-mono text-[11px] text-slate-300 truncate">
-                  {!recipient  ? '— no recipient —' : recipient.name} {recipient ? `(${recipient.address})` : ""} / <span class="text-xs">{recipientId}</span>
+                  {!recipient  ? '— no recipient —' : toTitleCase(recipient.name)} {recipient ? `(${recipient.address})` : ""} / <span class="text-xs">{recipientId}</span>
                 </span>
 
                 <span class="text-[10px] text-slate-600 shrink-0 ml-2">

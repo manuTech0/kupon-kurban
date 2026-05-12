@@ -4,6 +4,7 @@ import { invalidate, invalidateAll } from "$app/navigation";
 import dayjs from "dayjs";
 import ms from "ms";
 import { onMount } from "svelte";
+import { toTitleCase } from "$lib/helper/titleCase";
 
 let { data } = $props();
 
@@ -49,7 +50,7 @@ let stats = $derived([
 const recentActivity = $derived(
 	data.oldHistory?.map((d) => ({
 		type: "Checkout",
-		entity: `Coupon ${d.recipients?.name} (${d.recipients?.address})`,
+		entity: `Coupon ${toTitleCase(d.recipients?.name || '')} (${d.recipients?.address})`,
 		name: `Coupon #${d.coupons?.code.toString().padStart(4, "0")}`,
 		time: ms(Math.floor(Date.now() - d.coupon_history.createdAt.getTime()), {
 			long: true,

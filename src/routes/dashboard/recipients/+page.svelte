@@ -4,10 +4,14 @@ import { CardSim, Download } from "lucide-svelte";
 import { toast } from "svelte-sonner";
 import { utils, writeFile } from "xlsx";
 import { goto } from "$app/navigation"
+import { toTitleCase } from "$lib/helper/titleCase";
+import Pagination from "$lib/Pagination.svelte";
 const { data } = $props();
 
 let recipients = $state(data.recipients);
 let search = $state("");
+let currentPage = $state(1);
+const itemsPerPage = 10;
 let showCreateModal = $state(false);
 let showEditModal = $state(false);
 let showDeleteModal = $state(false);
@@ -26,6 +30,29 @@ function openCreateModal() {
 	resetForm();
 	showCreateModal = true;
 }
+
+const filteredRecipients = $derived(
+	recipients.filter(item => 
+		item.name.toLowerCase().includes(search.toLowerCase()) ||
+		item.address.toLowerCase().includes(search.toLowerCase())
+	)
+);
+
+const totalPages = $derived(Math.ceil(filteredRecipients.length / itemsPerPage));
+const paginatedRecipients = $derived(
+	filteredRecipients.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage
+	)
+);
+
+function handlePageChange(page: number) {
+	currentPage = page;
+}
+
+$effect(() => {
+	currentPage = 1;
+});
 
 async function handleCreate() {
 	const form = document.querySelector("#createForm") as HTMLFormElement;
@@ -209,7 +236,7 @@ function exportEXCEL() {
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 		<div class="bg-white rounded-lg p-6 w-full max-w-md">
 			<h2 class="text-xl font-bold mb-4">Delete Recipient</h2>
-			<p class="mb-4">Are you sure you want to delete "{selectedRecipient.name}"?</p>
+			<p class="mb-4">Are you sure you want to delete "{toTitleCase(selectedRecipient.name)}"?</p>
 			
 			<form 
 				id="deleteForm"
@@ -291,12 +318,9 @@ function exportEXCEL() {
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
-				{#each recipients.filter(item => 
-					item.name.toLowerCase().includes(search.toLowerCase()) ||
-					item.address.toLowerCase().includes(search.toLowerCase())
-				) as recipient}
+				{#each paginatedRecipients as recipient}
 					<tr>
-						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{recipient.name}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{toTitleCase(recipient.name)}</td>
 						<td class="px-6 py-4 text-sm text-gray-500">{recipient.address}</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 							{new Date(recipient.createdAt).toLocaleDateString()}
@@ -332,10 +356,12 @@ function exportEXCEL() {
 			</tbody>
 		</table>
 		
-		{#if recipients.length === 0}
+		{#if filteredRecipients.length === 0}
 			<div class="text-center py-8 text-gray-500">
 				No recipients found
 			</div>
+		{:else if totalPages > 1}
+			<Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
 		{/if}
 	</div>
 </div>

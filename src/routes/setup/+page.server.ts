@@ -14,7 +14,7 @@ export const load: Load = async () => {
 };
 
 export const actions: Actions = {
-	setup: async ({ request }) => {
+	init: async ({ request }) => {
 		try {
 			const formData = await request.formData();
 			const name = formData.get("name")?.toString();

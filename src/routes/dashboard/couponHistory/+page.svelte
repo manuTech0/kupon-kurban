@@ -2,6 +2,8 @@
 import { enhance } from "$app/forms";
 import { toast } from "svelte-sonner";
     import type { PageProps } from "./$types";
+    import { toTitleCase } from "$lib/helper/titleCase";
+import Pagination from "$lib/Pagination.svelte";
     import { toLowerCase } from "zod";
 
 const { data }: PageProps = $props();
@@ -9,6 +11,8 @@ const { data }: PageProps = $props();
 let history = $state(data.history);
 let recipient = $state(data.recipient)
 let search = $state("");
+let currentPage = $state(1);
+const itemsPerPage = 10;
 let showCreateModal = $state(false);
 let showEditModal = $state(false);
 let showDeleteModal = $state(false);
@@ -34,6 +38,31 @@ function openCreateModal() {
 	resetForm();
 	showCreateModal = true;
 }
+
+const filteredHistory = $derived(
+	history.filter(item => 
+		item.couponCode?.toString().includes(search) ||
+		recipient.find(r => r.id === item.recipientId)?.name.toLowerCase().includes(search.toLowerCase()) ||
+		recipient.find(r => r.id === item.recipientId)?.address.toLowerCase().includes(search.toLowerCase()) ||
+		item.status?.toLowerCase().includes(search.toLowerCase())
+	)
+);
+
+const totalPages = $derived(Math.ceil(filteredHistory.length / itemsPerPage));
+const paginatedHistory = $derived(
+	filteredHistory.slice(
+		(currentPage - 1) * itemsPerPage,
+		currentPage * itemsPerPage
+	)
+);
+
+function handlePageChange(page: number) {
+	currentPage = page;
+}
+
+$effect(() => {
+	currentPage = 1;
+});
 
 function getStatusColor(status: string | null) {
 	switch (status) {
@@ -122,7 +151,7 @@ async function handleDelete() {
 					>
 						<option value="">Select a recipient</option>
 						{#each recipient as r}
-							<option value={r.id}>{r.name}</option>
+							<option value={r.id}>{toTitleCase(r.name)}</option>
 						{/each}
 					</select>
 				</div>	
@@ -222,7 +251,7 @@ async function handleDelete() {
 					>
 						<option value="">Select a recipient</option>
 						{#each recipient as r}
-							<option value={r.id}>{r.name}</option>
+							<option value={r.id}>{toTitleCase(r.name)}</option>
 						{/each}
 					</select>
 				</div>	
@@ -352,12 +381,7 @@ async function handleDelete() {
 				</tr>
 			</thead>
 			<tbody class="bg-white divide-y divide-gray-200">
-				{#each history.filter(item => 
-					item.couponCodeId?.toString().includes(search) ||
-					item.recipient.name?.toLowerCase().includes(search.toLowerCase()) ||
-					item.user?.name?.toLowerCase().includes(search.toLowerCase()) ||
-					item.status?.toLowerCase().includes(search.toLowerCase())
-				) as item}
+				{#each paginatedHistory as item}
 					<tr>
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
 							<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full font-mono">
@@ -418,10 +442,12 @@ async function handleDelete() {
 			</tbody>
 		</table>
 		
-		{#if history.length === 0}
+		{#if filteredHistory.length === 0}
 			<div class="text-center py-8 text-gray-500">
 				No coupon history found
 			</div>
+		{:else if totalPages > 1}
+			<Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
 		{/if}
 	</div>
 </div>

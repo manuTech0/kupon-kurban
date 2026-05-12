@@ -35,7 +35,7 @@ const { form }: PageProps = $props();
     {/if}
     {#if form === null}
       
-    <form action="?/setup" class="space-y-4" method="post">
+    <form action="?/init" class="space-y-4" method="post">
       
       <div class="flex flex-col gap-1">
         <label for="name" class="text-sm font-medium text-gray-700">

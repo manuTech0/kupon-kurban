@@ -18,7 +18,7 @@ const { form }: PageProps = $props();
     {/if}
     {#if form === null}
       
-    <form action="?/login" class="space-y-4" method="post">
+    <form action="?/signin" class="space-y-4" method="post">
       
       <div class="flex flex-col gap-1">
         <label for="token" class="text-sm font-medium text-gray-700">

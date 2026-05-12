@@ -2,6 +2,7 @@
 	import { onMount, onDestroy } from "svelte";
 	import type { PageProps } from "./$types";
 	import type { RecipientGroup, Job, JobLog } from "./+page.server";
+	import { toTitleCase } from "$lib/helper/titleCase";
 
 	const { data }: PageProps = $props();
 
@@ -292,7 +293,7 @@
 																	<span class="meta-pill recipient">ID: {String(log.meta.recipientId).slice(0, 8)}…</span>
 																{/if}
 																{#each Object.entries(log.meta).filter(([k]) => !["couponCode","recipientId"].includes(k)) as [k, v]}
-																	<span class="meta-pill extra">{k}: {String(v)}</span>
+																	<span class="meta-pill extra">{toTitleCase(k)}: {String(v)}</span>
 																{/each}
 															</div>
 														{/if}
