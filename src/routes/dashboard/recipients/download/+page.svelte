@@ -2,10 +2,16 @@
     import { env } from "$env/dynamic/public";
   import Barcode from "$lib/Barcode.svelte";
     import { toTitleCase } from "$lib/helper/titleCase";
+    import { zone } from "$lib/helper/zone";
   import type { PageProps } from "./$types";
   import "pagedjs";
 
-  const { data }: PageProps = $props();
+  const { data: raw }: PageProps = $props();
+  let zoneSelect = $state("all") 
+  let data = $derived(zoneSelect === "all" ? raw : {
+    ...raw,
+    recipients: raw.recipients.filter(r => r.zone === zoneSelect)
+  })
   const hijri = new Intl.DateTimeFormat("en-TN-u-ca-islamic", {
     year: "numeric"
   }).format(new Date()).replace(/AH|Anno Hegirae/i, "").trim()
@@ -26,14 +32,24 @@
       Kupon Kurban Idul Adha · <strong>{data.recipients.length}</strong> lembar
     </p>
   </div>
-  <button onclick={() => window.print()} class="btn-print">
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="6 9 6 2 18 2 18 9"></polyline>
-      <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
-      <rect x="6" y="14" width="12" height="8"></rect>
-    </svg>
-    Cetak A4
-  </button>
+  <div class="flex flex-row gap-3 items-center">  
+    <div>
+			<select name="zone" class="block text-sm font-medium mb-1" bind:value={zoneSelect}>
+				{#each zone as z}
+					<option value={z}>{z}</option>
+				{/each}
+				<option value="all">all</option>
+			</select>
+    </div>
+    <button onclick={() => window.print()} class="btn-print">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+      </svg>
+      Cetak A4
+    </button>
+  </div>
 </div>
 
 <div class="print-root">

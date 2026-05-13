@@ -8,10 +8,8 @@ import { toTitleCase } from "$lib/helper/titleCase";
 import Pagination from "$lib/Pagination.svelte";
     import { onMount } from "svelte";
     import { isWithin3Months } from "$lib/helper/within3Month.js";
+    import { zone } from "$lib/helper/zone.js";
 const { data } = $props();
-
-const CHAR = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65+i))
-const zone = CHAR.concat(CHAR.map((C) => `${C}1`), CHAR.map((C) => `${C}2`))
 
 let recipients = $state(data.recipients);
 let search = $state("");
@@ -26,6 +24,8 @@ let formData = $state({
 	address: "",
 });
 let loading = $state(false)
+let showExcelModal = $state()
+let zoneSelect = $state("all")
 
 function resetForm() {
 	formData = { name: "", address: "" };
@@ -93,7 +93,8 @@ async function exportEXCEL() {
 	// 	method: "GET"
 	// })
 	// const data = await res.json() as typeof recipients
-	const recipientsSheet = recipients.map((d, index) => ({
+	const data = zoneSelect !== "all" ? recipients.filter((r) => r.zone === zoneSelect) : recipients
+	const recipientsSheet = data.map((d, index) => ({
 		no: index+1, 
 		no_kupon: `#${d.coupon.code.toString().padStart(4, "0")}`,
 		nama: toTitleCase(d.name),
@@ -123,6 +124,24 @@ onMount(() => {
 	})
 })
 </script>
+
+{#if showExcelModal}
+  <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md flex flex-row justify-around items-center">  
+      <div>
+				<label for="zone" class="block text-sm font-medium mb-1">Zone</label>
+				<select name="zone" id="zone" class="block text-sm font-medium mb-1" bind:value={zoneSelect}>
+					{#each zone as z}
+					  <option value={z}>{z}</option>
+					{/each}
+					<option value="all">all</option>
+				</select>
+      </div>
+      <button onclick={exportEXCEL} class="rounded-md border max-w-md p-3 bg-green-500">Download Excel</button>
+      <button onclick={() => showExcelModal = false} class="rounded-md border max-w-md p-3">Cancel</button>
+    </div>
+  </div>
+{/if}
 
 {#if showCreateModal}
 	<div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -353,7 +372,7 @@ onMount(() => {
 			<button type="button" class="hover:scale-90 p-2 rounded-l-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={() => goto("recipients/download")}>
 				<CardSim /> <span>Coupon</span>
 			</button>
-			<button type="button" class="hover:scale-90 p-2 rounded-r-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={exportEXCEL}>
+			<button type="button" class="hover:scale-90 p-2 rounded-r-md flex items-center justify-around gap-2 bg-black/20 border cursor-pointer" onclick={() => showExcelModal = true}>
 				<Download /> <span>Excel</span>
 			</button>
 		</div>
