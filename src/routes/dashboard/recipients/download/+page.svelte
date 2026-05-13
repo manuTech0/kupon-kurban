@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { env } from "$env/dynamic/public";
   import Barcode from "$lib/Barcode.svelte";
+    import { toTitleCase } from "$lib/helper/titleCase";
   import type { PageProps } from "./$types";
   import "pagedjs";
 
@@ -61,12 +63,12 @@
 
           <div class="field">
             <span class="field-label">Nama</span>
-            <span class="field-val field-val--name">{k.name}</span>
+            <span class="field-val field-val--name">{toTitleCase(k.name)}</span>
           </div>
 
           <div class="field">
             <span class="field-label">Alamat</span>
-            <span class="field-val field-val--addr">{k.address}</span>
+            <span class="field-val field-val--addr">{toTitleCase(k.address)}</span>
           </div>
 
           <div class="field-row">
@@ -76,7 +78,7 @@
             </div>
             <div class="field">
               <span class="field-label">Tanggal</span>
-              <span class="field-val field-val--date">6 Jun 2025</span>
+              <span class="field-val field-val--date">{env.PUBLIC_KURBAN_DATE}</span>
             </div>
           </div>
 
@@ -177,7 +179,7 @@
   .coupon-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 7px;
+    gap: 2px;
   }
 
   /* ── Kupon ──────────────────────────────────────────── */

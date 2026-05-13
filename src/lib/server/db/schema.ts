@@ -58,6 +58,7 @@ export const recipients = pgTable("recipients", {
 	idInt: serial("id_int"),
 	name: varchar("name", { length: 255 }).notNull(),
 	address: text("address").notNull(),
+	zone: text("zone"),
 	createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

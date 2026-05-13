@@ -8,6 +8,7 @@ export default defineConfig({
 		allowedHosts: [
 			"unmodified-ghostlike-darius.ngrok-free.dev",
 			"kurban.notoofly.my.id",
+			"testkurban.notoofly.my.id",
 		],
 	},
 });

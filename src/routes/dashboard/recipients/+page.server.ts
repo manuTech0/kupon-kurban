@@ -2,15 +2,13 @@ import { fail } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "$lib/server/db";
-import {
-	coupons,
-	recipients,
-} from "$lib/server/db/schema";
+import { coupons, recipients } from "$lib/server/db/schema";
 import type { Actions, PageServerLoad } from "./$types";
 import { getSlot } from "$lib/server/time";
 
 const ZodPost = z.object({
 	name: z.string().min(1, "Name is required").max(255, "Name too long"),
+	zone: z.string().min(1, "Zone is required").max(4),
 	address: z.string().min(1, "Address is required"),
 });
 
@@ -19,12 +17,12 @@ export const load: PageServerLoad = async () => {
 		with: {
 			coupon: {
 				with: {
-					history: true
-				}
-			}
+					history: true,
+				},
+			},
 		},
-		orderBy: (f, op) => op.desc(f.createdAt)
-	})
+		orderBy: (f, op) => op.desc(f.createdAt),
+	});
 	return {
 		recipients: result,
 	};
@@ -48,6 +46,7 @@ export const actions: Actions = {
 					.values({
 						name: parsed.data.name,
 						address: parsed.data.address,
+						zone: parsed.data.zone,
 					})
 					.returning();
 				await tx.insert(coupons).values({
@@ -86,6 +85,7 @@ export const actions: Actions = {
 				.set({
 					name: parsed.data.name,
 					address: parsed.data.address,
+					zone: parsed.data.zone,
 				})
 				.where(eq(recipients.id, id));
 

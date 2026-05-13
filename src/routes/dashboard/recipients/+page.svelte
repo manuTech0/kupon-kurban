@@ -6,7 +6,12 @@ import { utils, writeFile } from "xlsx";
 import { goto } from "$app/navigation"
 import { toTitleCase } from "$lib/helper/titleCase";
 import Pagination from "$lib/Pagination.svelte";
+    import { onMount } from "svelte";
+    import { isWithin3Months } from "$lib/helper/within3Month.js";
 const { data } = $props();
+
+const CHAR = Array.from({ length: 26 }, (_, i) => String.fromCharCode(65+i))
+const zone = CHAR.concat(CHAR.map((C) => `${C}1`), CHAR.map((C) => `${C}2`))
 
 let recipients = $state(data.recipients);
 let search = $state("");
@@ -20,6 +25,7 @@ let formData = $state({
 	name: "",
 	address: "",
 });
+let loading = $state(false)
 
 function resetForm() {
 	formData = { name: "", address: "" };
@@ -74,30 +80,48 @@ async function handleDelete() {
 		form.requestSubmit();
 	}
 }
+let inputFocus = $state(false)
+function focus(node: HTMLInputElement) {
+	node.focus()
+	return {
+		destroy() {}
+	}
+}
 
-function exportEXCEL() {
-	const recipientsSheet = recipients.map((d) => ({
-		uuid: d.id,
-		nama: d.name,
-		alamat: d.address,
-		no_kupon: "#" + d.coupon.code.toString().padStart(4, "0"),
+async function exportEXCEL() {
+	// const res = await fetch("/api/recipient", {
+	// 	method: "GET"
+	// })
+	// const data = await res.json() as typeof recipients
+	const recipientsSheet = recipients.map((d, index) => ({
+		no: index+1, 
+		no_kupon: `#${d.coupon.code.toString().padStart(4, "0")}`,
+		nama: toTitleCase(d.name),
+		alamat: toTitleCase(d.address),
+		diterima: d.coupon.history.find(h => 	isWithin3Months(h.createdAt))?.status === "USED" ? "Iya" : "Tidak"
 	}));
-	const couponSheet = recipients.map((d) => d.coupon.history.map(h => ({
-		historyId: h.id,
-		recipientsId: d.id,
-		nama: d.name,
-		alamat: d.address,
-		status: h.status?.toLocaleLowerCase(),
-		date: h.createdAt,
-		code: d.coupon.code
-	})))
 	const worksheetRecipient = utils.json_to_sheet(recipientsSheet);
-	const worksheetCoupons = utils.json_to_sheet(couponSheet.flat())
 	const workbook = utils.book_new();
 	utils.book_append_sheet(workbook, worksheetRecipient, "Recipients");
-	utils.book_append_sheet(workbook, worksheetCoupons, "Coupons History")
 	writeFile(workbook, `data-${new Date().toISOString()}.xlsx`);
 }
+
+onMount(() => {
+	window.addEventListener("keydown", (event) => {
+		if(event.shiftKey && event.key.toLowerCase() === "a") {
+			event.preventDefault()
+			event.stopPropagation()
+			if(showCreateModal) {
+				showCreateModal = false
+				inputFocus = false
+			} else {
+				openCreateModal()
+				inputFocus = true
+				resetForm()
+			}
+		}
+	})
+})
 </script>
 
 {#if showCreateModal}
@@ -109,8 +133,10 @@ function exportEXCEL() {
 				id="createForm"
 				method="POST" 
 				action="?/create"
+				onsubmit={() => loading = true}
 				use:enhance={() => {
 					return async ({ result }) => {
+						loading = false
 						if (result.type === 'success') {
 							toast.success('Recipient created successfully');
 							showCreateModal = false;
@@ -126,13 +152,23 @@ function exportEXCEL() {
 					<input 
 						id="name"
 						type="text" 
-						name="name" 
+						name="name"
+						use:focus
 						bind:value={formData.name}
 						class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
 						required
 					/>
 				</div>
 				
+        <div class="mb-4">
+					<label for="zone" class="block text-sm font-medium mb-1">Zone</label>
+					<select name="zone" id="zone" class="block text-sm font-medium mb-1">
+					  {#each zone as z}
+					    <option value={z}>{z}</option>
+					  {/each}
+					</select>
+        </div>
+
 				<div class="mb-4">
 					<label for="address" class="block text-sm font-medium mb-1">Address</label>
 					<textarea 
@@ -148,7 +184,10 @@ function exportEXCEL() {
 				<div class="flex justify-end gap-2">
 					<button 
 						type="button" 
-						onclick={() => showCreateModal = false}
+						onclick={() => {
+							showCreateModal = false
+							inputFocus = false
+						}}
 						class="px-4 py-2 border rounded-lg hover:bg-gray-100"
 					>
 						Cancel
@@ -156,8 +195,9 @@ function exportEXCEL() {
 					<button 
 						type="submit"
 						class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+						disabled={loading}
 					>
-						Create
+						{loading ? "Creating..." : "Create"}
 					</button>
 				</div>
 			</form>
@@ -174,8 +214,10 @@ function exportEXCEL() {
 				id="editForm"
 				method="POST" 
 				action="?/update"
+				onsubmit={() => loading = true}
 				use:enhance={() => {
 					return async ({ result }) => {
+						loading = true
 						if (result.type === 'success') {
 							toast.success('Recipient updated successfully');
 							showEditModal = false;
@@ -200,6 +242,15 @@ function exportEXCEL() {
 					/>
 				</div>
 				
+        <div class="mb-4">
+					<label for="zone" class="block text-sm font-medium mb-1">Zone</label>
+					<select name="zone" id="zone" class="block text-sm font-medium mb-1">
+					  {#each zone as z}
+					    <option value={z}>{z}</option>
+					  {/each}
+					</select>
+        </div>
+
 				<div class="mb-4">
 					<label for="edit-address" class="block text-sm font-medium mb-1">Address</label>
 					<textarea 
@@ -223,8 +274,9 @@ function exportEXCEL() {
 					<button 
 						type="submit"
 						class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+						disabled={loading}
 					>
-						Update
+						{loading ? "Updateing.." : "Update"}
 					</button>
 				</div>
 			</form>
@@ -283,7 +335,7 @@ function exportEXCEL() {
 			onclick={openCreateModal}
 			class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
 		>
-			Add Recipient
+			Add Recipient (Shift+a)
 		</button>
 	</div>
 	<div class="mb-4 flex justify-between items-centert">
@@ -312,6 +364,7 @@ function exportEXCEL() {
 			<thead class="bg-gray-50">
 				<tr>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zone</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th>
 					<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -321,6 +374,7 @@ function exportEXCEL() {
 				{#each paginatedRecipients as recipient}
 					<tr>
 						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{toTitleCase(recipient.name)}</td>
+						<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{recipient.zone?.toUpperCase() ?? "Reguler"}</td>
 						<td class="px-6 py-4 text-sm text-gray-500">{recipient.address}</td>
 						<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
 							{new Date(recipient.createdAt).toLocaleDateString()}
