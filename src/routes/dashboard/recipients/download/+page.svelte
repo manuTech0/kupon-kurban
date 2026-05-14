@@ -107,7 +107,7 @@
 
           <!-- Barcode -->
           <div class="barcode-block">
-            <Barcode value={"#" + k.coupon.code.toString().padStart(4, "0")} />
+            <Barcode value={`#` + k.coupon.code.toString().padStart(4, "0")} />
             <div class="barcode-info">
               <span class="barcode-num">#{k.coupon.code.toString().padStart(4, "0")}</span>
               <span class="barcode-sub">Scan verifikasi</span>

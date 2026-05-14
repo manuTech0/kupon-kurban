@@ -508,8 +508,8 @@ onDestroy(async () => {
             <div class="flex items-center gap-3 px-4 py-3
               {entry?.status === 'dalam-3-bulan' ? 'bg-amber-500/5'
               : entry?.status === 'terpakai' ? 'bg-red-500/5' : ''}">
-              <span class="font-mono text-xs text-teal-400 w-10 shrink-0">
-                #{item.coupon.code.toString().padStart(4, "0")}
+              <span class="font-mono text-xs text-teal-400 w-14 shrink-0">
+                #{item.coupon.code.toString().padStart(4, "0")}{item.zone ? `-${item.zone}` : ""}
               </span>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-neutral-100 truncate">
